@@ -22,7 +22,7 @@ public class JDpi {
         ImageBufferedImage buffered = new ImageBufferedImage();
         FrameImagen frame = new FrameImagen(
                                 buffered.getImage(
-                                    lector.getBufferedImagen(), queCanal, 1));
+                                    lector.getBufferedImagen(), queCanal, 1), path,archivoImagen);
     }
     
 }

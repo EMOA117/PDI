@@ -21,17 +21,15 @@ import modelo.LectorDeImagen;
 
 public class FrameImagen extends JFrame {
     private PanelImagen panel;
-    private String path = "C:\\Users\\EMOA1\\OneDrive\\Imágenes\\";
-    private String archivoImagen = "narufondo.jpg";
 
-    public FrameImagen(Image imagen) {
+    public FrameImagen(Image imagen, String path, String name) {
         int ancho = imagen.getWidth(null);
         int alto = imagen.getHeight(null);
         setTitle("Visor de imagen " + ancho + " x " + alto + " pixeles.");
-        initComponents(imagen);
+        initComponents(imagen, path, name);
     }
 
-    private void initComponents(Image imagen) {
+    private void initComponents(Image imagen, String path, String name) {
         Container contenedor = this.getContentPane();
         contenedor.setLayout(new BorderLayout());
         panel = new PanelImagen(imagen);
@@ -42,6 +40,7 @@ public class FrameImagen extends JFrame {
         JMenu menuImagen = new JMenu("Imagen");
         JMenu menuBrilloContraste = new JMenu("Brillo y Contraste");
         // Crear elementos del menú para cambiar el canal de color
+        JMenuItem itemRGB = new JMenuItem("RGB");
         JMenuItem itemGris = new JMenuItem("Ponderacion en Gris");
         JMenuItem itemRojo = new JMenuItem("Canal Rojo");
         JMenuItem itemRojoGris = new JMenuItem("Canal Rojo en Gris");
@@ -51,11 +50,20 @@ public class FrameImagen extends JFrame {
         JMenuItem itemAzulGris = new JMenuItem("Canal Azul en Gris");
         
         
+        itemRGB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Cambiar al canal rojo (debes implementar la lógica de cambio)
+                cambiarCanalColor(4, path,name);  // 0 para Rojo
+            }
+        });
+        
+        
         itemGris.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Cambiar al canal rojo (debes implementar la lógica de cambio)
-                cambiarCanalColor(5);  // 0 para Rojo
+                cambiarCanalColor(5, path,name);  // 0 para Rojo
             }
         });
         
@@ -64,7 +72,7 @@ public class FrameImagen extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Cambiar al canal rojo (debes implementar la lógica de cambio)
                 
-                cambiarCanalColor(1);  // 0 para Rojo
+                cambiarCanalColor(1, path,name);  // 0 para Rojo
             }
         });
         
@@ -73,7 +81,7 @@ public class FrameImagen extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Cambiar al canal rojo (debes implementar la lógica de cambio)
                 
-                cambiarCanalColor(6);  // 0 para Rojo
+                cambiarCanalColor(6, path,name);  // 0 para Rojo
             }
         });
         
@@ -81,7 +89,7 @@ public class FrameImagen extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Cambiar al canal verde
-                cambiarCanalColor(2);  // 1 para Verde
+                cambiarCanalColor(2, path,name);  // 1 para Verde
             }
         });
         
@@ -89,7 +97,7 @@ public class FrameImagen extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Cambiar al canal verde
-                cambiarCanalColor(7);  // 1 para Verde
+                cambiarCanalColor(7, path,name);  // 1 para Verde
             }
         });
         
@@ -97,7 +105,7 @@ public class FrameImagen extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Cambiar al canal azul
-                cambiarCanalColor(3);  // 2 para Azul
+                cambiarCanalColor(3, path,name);  // 2 para Azul
             }
         });
         
@@ -105,7 +113,7 @@ public class FrameImagen extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Cambiar al canal azul
-                cambiarCanalColor(8);  // 2 para Azul
+                cambiarCanalColor(8, path,name);  // 2 para Azul
             }
         });
 
@@ -123,7 +131,7 @@ public class FrameImagen extends JFrame {
         itemBrillo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ajustarBrillo(); // Método para ajustar el brillo
+                ajustarBrillo(path,name); // Método para ajustar el brillo
             }
         });
         
@@ -131,7 +139,7 @@ public class FrameImagen extends JFrame {
         itemContraste.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ajustarContraste(); // Método para ajustar el contraste
+                ajustarContraste(path,name); // Método para ajustar el contraste
             }
         });
         
@@ -154,7 +162,7 @@ public class FrameImagen extends JFrame {
     
     
     // Método para ajustar el brillo
-    private void ajustarBrillo() {
+    private void ajustarBrillo(String path, String name ) {
         // Crear un slider para ajustar el brillo
         JSlider slider = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
         slider.setMajorTickSpacing(50);
@@ -169,7 +177,7 @@ public class FrameImagen extends JFrame {
             int valorBrillo = slider.getValue();
             
             //se suma un escalar
-            cambiarContrasteBrillo(9, valorBrillo);
+            cambiarContrasteBrillo(9, valorBrillo, path, name);
             
             // Implementa la lógica para ajustar el brillo con el valor dado
             // Ejemplo: panel.ajustarBrillo(valorBrillo);
@@ -177,7 +185,7 @@ public class FrameImagen extends JFrame {
     }
 
     // Método para ajustar el contraste
-    private void ajustarContraste() {
+    private void ajustarContraste(String path, String name ) {
         // Crear un slider para ajustar el contraste
   JSlider sliderContraste = new JSlider(JSlider.HORIZONTAL, 50, 150, 100);
 sliderContraste.setMajorTickSpacing(25);
@@ -192,7 +200,7 @@ int resultado = JOptionPane.showConfirmDialog(this, sliderContraste,
 if (resultado == JOptionPane.OK_OPTION) {
     int valorSlider = sliderContraste.getValue();  // Valor del slider (10 a 20)
     double valorContraste = valorSlider / 10.0;  // Convertir a rango decimal (1.0 a 2.0)
-    cambiarContrasteBrillo(10, valorSlider);
+    cambiarContrasteBrillo(10, valorSlider, path,name);
     
     // Usa el valor del contraste para procesar la imagen
     System.out.println("Contraste seleccionado: " + valorContraste);
@@ -201,21 +209,25 @@ if (resultado == JOptionPane.OK_OPTION) {
     }
     
     // Método para cambiar la imagen dentro del panel
-    private void cambiarCanalColor(int canal) {
-         LectorDeImagen lector = new LectorDeImagen(path, archivoImagen);
+    private void cambiarCanalColor(int canal,String path, String name ) {
+         LectorDeImagen lector = new LectorDeImagen(path, name);
         lector.leerBufferedImagen();
         ImageBufferedImage buffered = new ImageBufferedImage();
+        // Cerrar el Frame actual
+    this.dispose();
         FrameImagen frame = new FrameImagen(
                                 buffered.getImage(
-                                    lector.getBufferedImagen(), canal, 1));
+                                    lector.getBufferedImagen(), canal, 1),path, name);
     }
     
-    private void cambiarContrasteBrillo(int canal, int escalar) {
-         LectorDeImagen lector = new LectorDeImagen(path, archivoImagen);
+    private void cambiarContrasteBrillo(int canal, int escalar, String path, String name) {
+         LectorDeImagen lector = new LectorDeImagen(path, name);
         lector.leerBufferedImagen();
         ImageBufferedImage buffered = new ImageBufferedImage();
+        // Cerrar el Frame actual
+    this.dispose();
         FrameImagen frame = new FrameImagen(
                                 buffered.getImage(
-                                    lector.getBufferedImagen(), canal, escalar));
+                                    lector.getBufferedImagen(), canal, escalar), path, name);
     }
 }
