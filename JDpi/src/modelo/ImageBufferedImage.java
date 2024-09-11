@@ -75,7 +75,7 @@ public class ImageBufferedImage {
                         break;
                     case 5:
                         int gris = (rojo + verde + azul) / 3;
-                        double escalarDouble = 0.5;
+                        double escalarDouble = 1.0;
                         gris *= escalarDouble;
                         if(gris>255) {
                             gris = 255;
