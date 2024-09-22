@@ -24,4 +24,7 @@ public class PanelImagen extends JPanel {
         add(canvas, BorderLayout.CENTER);
         this.setSize(imagen.getWidth(null), imagen.getHeight(null));
     }
+    public Image getImagen() {
+        return canvas.getImagen();
+    }
 }

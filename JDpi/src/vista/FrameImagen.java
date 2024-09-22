@@ -6,6 +6,7 @@
 package vista;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Image;
 import javax.swing.JFrame;
@@ -16,13 +17,17 @@ import javax.swing.JSlider;
 import javax.swing.JOptionPane;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import modelo.Histograma;
 import modelo.ImageBufferedImage;
 import modelo.LectorDeImagen;
 
 public class FrameImagen extends JFrame {
     private PanelImagen panel;
+    private Image img_clase;
 
     public FrameImagen(Image imagen, String path, String name) {
+        this.img_clase = imagen;
         int ancho = imagen.getWidth(null);
         int alto = imagen.getHeight(null);
         setTitle("Visor de imagen " + ancho + " x " + alto + " pixeles.");
@@ -39,6 +44,7 @@ public class FrameImagen extends JFrame {
         // Crear menús
         JMenu menuImagen = new JMenu("Imagen");
         JMenu menuBrilloContraste = new JMenu("Brillo y Contraste");
+        JMenu menuHistograma = new JMenu("Histograma");
         // Crear elementos del menú para cambiar el canal de color
         JMenuItem itemRGB = new JMenuItem("RGB");
         JMenuItem itemGris = new JMenuItem("Ponderacion en Gris");
@@ -48,6 +54,8 @@ public class FrameImagen extends JFrame {
         JMenuItem itemVerdeGris = new JMenuItem("Canal Verde en Gris");
         JMenuItem itemAzul = new JMenuItem("Canal Azul");
         JMenuItem itemAzulGris = new JMenuItem("Canal Azul en Gris");
+        JMenuItem histogramaGris = new JMenuItem("generar histograma en gris");
+        JMenuItem histogramaColores = new JMenuItem("generar histograma colores");
         
         
         itemRGB.addActionListener(new ActionListener() {
@@ -116,6 +124,22 @@ public class FrameImagen extends JFrame {
                 cambiarCanalColor(8, path,name);  // 2 para Azul
             }
         });
+        
+        histogramaGris.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // generarhistograma
+                generarhistogramaGris(imagen);
+            }
+        });
+        
+        histogramaColores.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // generarhistograma
+                generarHistogramaRGB(imagen);
+            }
+        });
 
         // Añadir opciones al menú Imagen
         menuImagen.add(itemGris);
@@ -125,6 +149,9 @@ public class FrameImagen extends JFrame {
         menuImagen.add(itemVerdeGris);
         menuImagen.add(itemAzul);
         menuImagen.add(itemAzulGris);
+        //añadir opciones al menú histograma
+        menuHistograma.add(histogramaGris);
+        menuHistograma.add(histogramaColores);
         
         // Crear elementos del menú para brillo y contraste con sliders
         JMenuItem itemBrillo = new JMenuItem("Ajustar Brillo");
@@ -150,6 +177,7 @@ public class FrameImagen extends JFrame {
         // Añadir menús a la barra de menú
         menuBar.add(menuImagen);
         menuBar.add(menuBrilloContraste);
+        menuBar.add(menuHistograma);
         
         // Añadir barra de menú al Frame
         this.setJMenuBar(menuBar);
@@ -229,5 +257,24 @@ if (resultado == JOptionPane.OK_OPTION) {
         FrameImagen frame = new FrameImagen(
                                 buffered.getImage(
                                     lector.getBufferedImagen(), canal, escalar), path, name);
+    }
+    
+    private void generarhistogramaGris(Image imagen){
+    Histograma histogramaGris = new Histograma(imagen);
+    histogramaGris.ejecutarTodo(4);
+    FrameHistograma frame = new FrameHistograma(histogramaGris, 4);
+    frame.setVisible(true);
+    }
+
+    private void generarHistogramaRGB(Image imagen){
+    Histograma histogramaRojo = new Histograma(imagen);
+    Histograma histogramaVerde = new Histograma(imagen);
+    Histograma histogramaAzul = new Histograma(imagen);
+    histogramaRojo.ejecutarTodo(1);
+    histogramaVerde.ejecutarTodo(2);
+    histogramaAzul.ejecutarTodo(3);
+    FrameHistograma frameRojo = new FrameHistograma(histogramaRojo, 1);
+    FrameHistograma frameVerde = new FrameHistograma(histogramaVerde, 2);
+    FrameHistograma frameAzul = new FrameHistograma(histogramaAzul, 3);
     }
 }

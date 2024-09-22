@@ -28,4 +28,7 @@ public class CanvasImagen extends Canvas {
             g.drawImage(imagen, 0, 0, imagen.getWidth(this), 
                 imagen.getHeight(this), this);
     }
+    public Image getImagen() {
+        return imagen;
+    }
 }

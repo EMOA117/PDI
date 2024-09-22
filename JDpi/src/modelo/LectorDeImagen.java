@@ -23,6 +23,9 @@ public class LectorDeImagen {
         this.path = path;
         this.nombreArchivo = sArchivo;
     }
+    public LectorDeImagen(Image imagen) {
+        this.imagen=imagen;
+    }
     public void leerImagen() {
         String acceso = this.path + nombreArchivo;
         System.out.println(acceso);

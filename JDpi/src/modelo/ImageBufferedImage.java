@@ -3,6 +3,7 @@ package modelo;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.awt.image.MemoryImageSource;
 import javax.swing.JFrame;
 
@@ -158,6 +159,18 @@ public class ImageBufferedImage {
                             }
                             color = new Color(grisContraste, grisContraste, grisContraste);
                             break;
+                            case 11: // histogramagris
+                             gris = (rojo + verde + azul) / 3;
+                             escalarDouble = 1.0;
+                                gris *= escalarDouble;
+                                if(gris>255) {
+                                    gris = 255;
+                                    }
+                                if(gris<0) {
+                                    gris = 0;
+                                    }
+                                color = new Color(gris, gris, gris);
+                            break;
 
                     }
                 imagenInt[y][x] = color.getRGB();
@@ -213,24 +226,34 @@ public class ImageBufferedImage {
      * @return Devuelve ob objeto de tipo image
      */
     public BufferedImage getBufferedImage(Image input) {
-        int alto = input.getHeight(null);
-        int ancho = input.getWidth(null);
-        bufferedImagen = 
-                new BufferedImage(ancho, alto, BufferedImage.TYPE_BYTE_GRAY);
-        ExtractorDePixel op = new ExtractorDePixel();
-        matrizImagen = op.obtenerPixelesEn2D(input, 0, 0, ancho, alto);
-        for(int y=0; y<alto; y++) {
-            for(int x=0; x<ancho; x++) {
-                int pixel = matrizImagen[y][x];
-                int azul  =  pixel & 0x000000ff;
-                Color color = new Color(azul, azul, azul);
-                pixel = color.getRGB();
-                bufferedImagen.setRGB(x, y, pixel);
-                }
-            }
-        
-        return bufferedImagen;
+    int alto = input.getHeight(null);
+    int ancho = input.getWidth(null);
+    
+    // Crear un BufferedImage en escala de grises
+    BufferedImage bufferedImagen = new BufferedImage(ancho, alto, BufferedImage.TYPE_BYTE_GRAY);
+    
+    // Extraer los píxeles de la imagen de entrada
+    ExtractorDePixel op = new ExtractorDePixel();
+    int[][] matrizImagen = op.obtenerPixelesEn2D(input, 0, 0, ancho, alto);
+    
+    for (int y = 0; y < alto; y++) {
+        for (int x = 0; x < ancho; x++) {
+            int pixel = matrizImagen[y][x];
+            
+            // Asegurarse de que el valor del pixel esté en el rango de 0 a 255
+            pixel = Math.max(0, Math.min(255, pixel));
+            
+            // Crear un color en escala de grises usando el valor del píxel
+            Color color = new Color(pixel, pixel, pixel);
+            
+            // Convertir el color a un valor RGB y asignar al BufferedImage
+            bufferedImagen.setRGB(x, y, color.getRGB());
+        }
     }
+    
+    return bufferedImagen;
+}
+
     /**
      * Convierte un objeto Image a un objeto BufferedImage en color.
      * 
@@ -268,7 +291,18 @@ public class ImageBufferedImage {
     }
 
     public int[][] getMatrizImagen() {
+        
         return matrizImagen;
     }
+    
+    public int[][] getMatrizImageBuffered(Image imagen) {
+        ImageObserver observer = null;
+    int alto = imagen.getHeight(observer);
+    int ancho = imagen.getWidth(observer);
+    ExtractorDePixel op = new ExtractorDePixel();
+        int [][] imagenInt = op.obtenerPixelesEn2D(imagen, 0, 0, ancho, alto);
+        return imagenInt;
+}
+
     
 }
