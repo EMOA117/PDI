@@ -15,16 +15,22 @@ import javax.swing.JPanel;
  */
 public class PanelImagen extends JPanel {
     private CanvasImagen canvas;
+
     public PanelImagen(Image imagen) {
         initComponents(imagen);
     }
+
     private void initComponents(Image imagen) {
         canvas = new CanvasImagen(imagen);
-        this.setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());        
         add(canvas, BorderLayout.CENTER);
+        
         this.setSize(imagen.getWidth(null), imagen.getHeight(null));
     }
-    public Image getImagen() {
-        return canvas.getImagen();
+
+    public void cambiarImg(Image img) {
+        this.canvas.setImagen(img);
+        this.revalidate(); 
+        this.repaint();
     }
 }
