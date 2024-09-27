@@ -174,6 +174,7 @@ public class FrameImagen extends JFrame {
         menuImagen.add(itemVerdeGris);
         menuImagen.add(itemAzul);
         menuImagen.add(itemAzulGris);
+        menuImagen.add(itemRGB);
         //añadir opciones al menú histograma
         menuHistograma.add(histogramaGris);
         menuHistograma.add(histogramaColores);

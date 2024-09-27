@@ -34,8 +34,8 @@ public class FrameHistograma extends JFrame {
         break;
 }
         
-        setTitle("Histogramas"+name);
-        setSize(800, 600);
+        setTitle("Histogramas "+name);
+        setSize(350, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         // Configurar el layout para dar más espacio a los histogramas
@@ -46,7 +46,7 @@ public class FrameHistograma extends JFrame {
         panelHistogramaGris.setBackground(Color.LIGHT_GRAY);
         panelHistogramaGris.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding de 10px
 
-        JPanel panelHistogramaAcumulado = new PanelHistogramaAcumulado(histograma.getPiac(), color, "Histograma acumulado");
+        JPanel panelHistogramaAcumulado = new PanelHistograma(histograma.getPiac(), color, "Histograma acumulado");
         panelHistogramaAcumulado.setBackground(Color.LIGHT_GRAY);
         panelHistogramaAcumulado.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding de 10px
 
