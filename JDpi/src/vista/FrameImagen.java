@@ -272,6 +272,14 @@ if (resultado == JOptionPane.OK_OPTION) {
         FrameImagen frame = new FrameImagen(
                                 buffered.getImage(
                                     lector.getBufferedImagen(), canal, 1),path, name);
+        // Maximizar el frame al tamaño de la pantalla
+                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+                // Si deseas ocultar la barra de título, puedes usar esta línea:
+                // frame.setUndecorated(true);
+
+                // Hacer visible el frame
+                frame.setVisible(true);
     }
     
     private void cambiarContrasteBrillo(int canal, int escalar, String path, String name) {
@@ -283,6 +291,14 @@ if (resultado == JOptionPane.OK_OPTION) {
         FrameImagen frame = new FrameImagen(
                                 buffered.getImage(
                                     lector.getBufferedImagen(), canal, escalar), path, name);
+        // Maximizar el frame al tamaño de la pantalla
+                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+                // Si deseas ocultar la barra de título, puedes usar esta línea:
+                // frame.setUndecorated(true);
+
+                // Hacer visible el frame
+                frame.setVisible(true);
     }
     
     private void generarhistogramaGris(Image imagen){
