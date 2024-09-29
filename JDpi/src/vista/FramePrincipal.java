@@ -1,20 +1,6 @@
 package vista;
 
-import color.CmyToCmyk;
-import color.CmyToRgb;
-import color.Hsi;
-import color.HsiToRgb;
-import color.Hsv;
-import color.HsvToRgb;
-import color.Lab;
-import color.LabToRgb;
-import color.RgbToCmy;
-import color.RgbToHsi;
-import color.RgbToHsv;
-import color.RgbToLab;
-import color.RgbToYCbCr;
-import color.RgbToYiq;
-import color.YiqToRgb;
+import color.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -118,6 +104,10 @@ public class FramePrincipal extends JFrame {
         menuHistograma.add(histogramaColores);
         menuConversiones.add(itemOp1);
         menuConversiones.add(itemOp2);
+        menuConversiones.add(itemOp3);
+        menuConversiones.add(itemOp4);
+        menuConversiones.add(itemOp8);
+        menuConversiones.add(itemOp5);
         
         menuBar.add(menuArchivo);
         menuBar.add(menuProcesar);
@@ -271,6 +261,41 @@ public class FramePrincipal extends JFrame {
     mostrarImagenEnInternalFrame3(imgH, "Componente H", desktopPane, conv.getImgconv());
     mostrarImagenEnInternalFrame3(imgS, "Componente S", desktopPane, conv.getImgconv());
     mostrarImagenEnInternalFrame3(imgI, "Componente I", desktopPane, conv.getImgconv());
+}else if (operacion.equals("RGBYIQ")) {
+    // Creación de objeto para conversión
+    RgbToYiq conv = new RgbToYiq();
+    
+    // Obtener las tres imágenes (Y, I, Q)
+    Image imgY = conv.convertirRgbAYiq32(icon.getImage(),1);
+    Image imgI = conv.convertirRgbAYiq32(icon.getImage(),2);
+    Image imgQ = conv.convertirRgbAYiq32(icon.getImage(),3);
+
+    // Mostrar las imágenes en JInternalFrame
+    mostrarImagenEnInternalFrame4(imgY, "Componente Y", desktopPane, conv.getConjuntoYIQ());
+    mostrarImagenEnInternalFrame4(imgI, "Componente I", desktopPane, conv.getConjuntoYIQ());
+    mostrarImagenEnInternalFrame4(imgQ, "Componente Q", desktopPane, conv.getConjuntoYIQ());
+}else if (operacion.equals("RGBYCbCr")) {
+    // Creación de objeto para conversión
+    RgbToYCbCr conv = new RgbToYCbCr();
+    
+    // Obtener las tres imágenes (Y, Cb, Cr)
+    Image imgY = conv.convertirImg(icon.getImage(),1);
+    Image imgCb = conv.convertirImg(icon.getImage(),2);
+    Image imgCr = conv.convertirImg(icon.getImage(),3);
+
+    // Mostrar las imágenes en JInternalFrame
+    mostrarImagenEnInternalFrame(imgY, "Componente Y", desktopPane,0, null);
+    mostrarImagenEnInternalFrame(imgCb, "Componente Cb", desktopPane,0, null);
+    mostrarImagenEnInternalFrame(imgCr, "Componente Cr", desktopPane,0, null);
+}else if (operacion.equals("RGBCMY")) {
+    // Creación de objeto para conversión
+    RgbToCmy conv = new RgbToCmy();
+    
+    // Obtener la imagen (C, M, Y)
+    Image img = conv.convertirRgbACmy(icon.getImage());
+
+    // Mostrar las imágenes en JInternalFrame
+    mostrarImagenEnInternalFrame5(img, "Imagen en CMY", desktopPane);
 }
 
         if (imagenProcesada != null) {
@@ -540,6 +565,160 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
         e.printStackTrace();
     }
 }
+ 
+     private void mostrarImagenEnInternalFrame4(Image img, String title, JDesktopPane desktopPane,  double [][] matriz) {
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame(title, false, true, false, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
+
+    // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth(null) + 20, img.getHeight(null) + 40);
+    internalFrame.setVisible(true);
     
+    // Crear la barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    JMenu menuExtraccion = new JMenu("Conversion RGB");
+            JMenuItem itemConversionRGB = new JMenuItem("Convertir a YIQ a RGB");
+            menuExtraccion.add(itemConversionRGB);
+            menuBar.add(menuExtraccion);
+
+            // Establecer la barra de menú en el JInternalFrame
+            internalFrame.setJMenuBar(menuBar);
+
+            // Acción para "Convertir a RGB"
+            itemConversionRGB.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Conversión de HSI a RGB
+                    YiqToRgb con = new YiqToRgb();
+                    // Aquí podrías aplicar la conversión e implementar la lógica para mostrar el resultado.
+                    System.out.println("Convertir a YIQ de RGB para: " + title);
+                    Image imagen= con.YiqToRgb(matriz,img.getWidth(null), img.getHeight(null));
+                    mostrarImagenEnInternalFrame(imagen, "Conversion de YIQ a RGB", desktopPane, 0, null);
+                }
+            });
+
+            // Añadir el nuevo JInternalFrame al JDesktopPane
+            desktopPane.add(internalFrame);
+    // Seleccionar el nuevo JInternalFrame
+    try {
+        internalFrame.setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
+    }
+}
+     
+     private void mostrarImagenEnInternalFrame5(Image img, String title, JDesktopPane desktopPane) {
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame(title, false, true, false, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
+
+    // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth(null) + 20, img.getHeight(null) + 40);
+    internalFrame.setVisible(true);
+    
+    // Crear la barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    JMenu menuExtraccion = new JMenu("Conversion");
+            JMenuItem itemOp1 = new JMenuItem("CMY a RGB");
+        JMenuItem itemOp4 = new JMenuItem("CMY a CMYK");
+        JMenuItem itemOp2 = new JMenuItem("Extracción de canales CMY en color");
+        JMenuItem itemOp3 = new JMenuItem("Extracción de canales CMY en grises");
+            menuExtraccion.add(itemOp1);
+            menuExtraccion.add(itemOp4);
+            menuExtraccion.add(itemOp2);
+            menuExtraccion.add(itemOp3);
+            
+            menuBar.add(menuExtraccion);
+
+            // Establecer la barra de menú en el JInternalFrame
+            internalFrame.setJMenuBar(menuBar);
+
+            // Acción para "Convertir a RGB"
+            itemOp1.addActionListener((ActionEvent e) -> {
+            CmyToRgb conv1 = new CmyToRgb();
+             Image imga = conv1.convertirCmyARgb(img);
+                mostrarImagenEnInternalFrame(image);
+             });
+             //Crear CYMToCMYK
+        itemOp4.addActionListener((ActionEvent e) -> {
+            CmyToCmyk conv1 = new CmyToCmyk();
+            Image imga = conv1.CMYtoCMYk(img, 5);
+            mostrarImagenEnInternalFrame6(imga, "Imagen CMYK", desktopPane);
+        });
+        
+        itemOp2.addActionListener((ActionEvent e) -> {
+            RgbToCmy conv1 = new RgbToCmy();
+            Image img1 = conv1.splitRgbACmy(img,1);
+            Image img2 = conv1.splitRgbACmy(img,2);
+            Image img3 = conv1.splitRgbACmy(img,3);
+            mostrarImagenEnInternalFrame(img1, "Imagen cyan - Extracción CMY-color", desktopPane,0,null);
+            mostrarImagenEnInternalFrame(img2, "Imagen magenta - Extracción CMY-color", desktopPane,0,null);
+            mostrarImagenEnInternalFrame(img3, "Imagen amarilla - Extracción CMY-color", desktopPane,0,null);
+        });
+        
+        itemOp3.addActionListener((ActionEvent e) -> {
+            RgbToCmy conv1 = new RgbToCmy();
+            Image img1 = conv1.splitRgbACmy(img,4);
+            Image img2 = conv1.splitRgbACmy(img,5);
+            Image img3 = conv1.splitRgbACmy(img,6);
+            mostrarImagenEnInternalFrame(img1, "Imagen cyan - Extracción CMY-grises", desktopPane,0,null);
+            mostrarImagenEnInternalFrame(img2, "Imagen magenta - Extracción CMY-grises", desktopPane,0,null);
+            mostrarImagenEnInternalFrame(img3, "Imagen amarilla - Extracción CMY-grises", desktopPane,0,null);
+        });
+        
+        
+            // Añadir el nuevo JInternalFrame al JDesktopPane
+            desktopPane.add(internalFrame);
+    // Seleccionar el nuevo JInternalFrame
+    try {
+        internalFrame.setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
+    }
+}
+     
+   private void mostrarImagenEnInternalFrame6(Image img, String title, JDesktopPane desktopPane) {
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame(title, false, true, false, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
+
+    // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth(null) + 20, img.getHeight(null) + 40);
+    internalFrame.setVisible(true);
+    
+    // Crear la barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    JMenu menuExtraccion = new JMenu("Extracción");
+            JMenuItem itemExtraccionColores = new JMenuItem("Extraer Canal K");
+            menuExtraccion.add(itemExtraccionColores);
+            menuBar.add(menuExtraccion);
+
+            // Establecer la barra de menú en el JInternalFrame
+            internalFrame.setJMenuBar(menuBar);
+
+            // Acción para extraer canal
+            itemExtraccionColores.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    setLayout(new BorderLayout());
+                CmyToCmyk conv1 = new CmyToCmyk();
+                Image imga = conv1.CMYtoCMYk(img, 4);
+                mostrarImagenEnInternalFrame(imga, "Canal K", desktopPane, 0, null);
+                }
+            });
+
+            // Añadir el nuevo JInternalFrame al JDesktopPane
+            desktopPane.add(internalFrame);
+    // Seleccionar el nuevo JInternalFrame
+    try {
+        internalFrame.setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
+    }
+}  
 }
 
