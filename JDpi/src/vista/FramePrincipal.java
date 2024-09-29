@@ -1,7 +1,26 @@
 package vista;
 
+import color.CmyToCmyk;
+import color.CmyToRgb;
+import color.Hsi;
+import color.HsiToRgb;
+import color.Hsv;
+import color.HsvToRgb;
+import color.Lab;
+import color.LabToRgb;
+import color.RgbToCmy;
+import color.RgbToHsi;
+import color.RgbToHsv;
+import color.RgbToLab;
+import color.RgbToYCbCr;
+import color.RgbToYiq;
+import color.YiqToRgb;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -9,7 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import java.io.IOException;
+import modelo.Histograma;
 import modelo.ImageBufferedImage;
+import modelo.LectorDeImagen;
 
 public class FramePrincipal extends JFrame {
 
@@ -34,6 +55,9 @@ public class FramePrincipal extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu menuArchivo = new JMenu("Archivo");
         JMenu menuProcesar = new JMenu("Procesar Imagen");
+        JMenu menuBrilloContraste = new JMenu("Brillo y Contraste");
+        JMenu menuHistograma = new JMenu("Histograma");
+        JMenu menuConversiones= new JMenu("Conversiones Directas (modelos de color)");
 
         // Opción de menú para cambiar la imagen
         JMenuItem menuItemCambiar = new JMenuItem("Cambiar Imagen");
@@ -50,6 +74,37 @@ public class FramePrincipal extends JFrame {
         // Opción para convertir a escala de grises
         JMenuItem menuItemEscalaGrises = new JMenuItem("Convertir a Escala de Grises");
         menuItemEscalaGrises.addActionListener(e -> procesarImagenSeleccionada("grises"));
+        
+        // Opción para brillo
+        JMenuItem menuItemBrillo = new JMenuItem("Subir/Bajar Brillo");
+        menuItemBrillo.addActionListener(e ->procesarImagenSeleccionada("brillo"));
+        
+        // Opción para brillo
+        JMenuItem menuItemContraste = new JMenuItem("Subir/Bajar Contraste");
+        menuItemContraste.addActionListener(e ->procesarImagenSeleccionada("contraste"));
+        
+        //Crear elementos del menú para generar el histograma
+        JMenuItem histogramaGris = new JMenuItem("generar histograma en gris");
+        histogramaGris.addActionListener(e ->procesarImagenSeleccionada("HistG"));
+        JMenuItem histogramaColores = new JMenuItem("generar histograma colores");
+        histogramaColores.addActionListener(e ->procesarImagenSeleccionada("Hist"));
+        
+        JMenuItem itemOp1 = new JMenuItem("RGB a HSV");
+        itemOp1.addActionListener(e ->procesarImagenSeleccionada("RGBHSV"));
+        JMenuItem itemOp2 = new JMenuItem("RGB a LAB");
+        itemOp2.addActionListener(e ->procesarImagenSeleccionada("RGBLAB"));
+        JMenuItem itemOp3 = new JMenuItem("RGB a HSI");
+        itemOp3.addActionListener(e ->procesarImagenSeleccionada("RGBHSI"));
+        JMenuItem itemOp4 = new JMenuItem("RGB a YIQ");
+        itemOp4.addActionListener(e ->procesarImagenSeleccionada("RGBYIQ"));
+        JMenuItem itemOp8 = new JMenuItem("RGB a YCbCr");
+        itemOp8.addActionListener(e ->procesarImagenSeleccionada("RGBYCbCr"));
+        JMenuItem itemOp5 = new JMenuItem("RGB a CMY");
+        itemOp5.addActionListener(e ->procesarImagenSeleccionada("RGBCMY"));
+        JMenuItem itemOp6 = new JMenuItem("Extracción de canales RGB en color");
+        itemOp6.addActionListener(e ->procesarImagenSeleccionada("RGBCol"));
+        JMenuItem itemOp7 = new JMenuItem("Extracción de canales RGB en grises");
+        itemOp7.addActionListener(e ->procesarImagenSeleccionada("RGBGris"));
 
         // Añadir las opciones a los menús
         menuArchivo.add(menuItemCambiar);
@@ -57,9 +112,18 @@ public class FramePrincipal extends JFrame {
         menuProcesar.add(menuItemExtraerAzul);
         menuProcesar.add(menuItemExtraerVerde);
         menuProcesar.add(menuItemEscalaGrises);
+        menuBrilloContraste.add(menuItemBrillo);
+        menuBrilloContraste.add(menuItemContraste);
+        menuHistograma.add(histogramaGris);
+        menuHistograma.add(histogramaColores);
+        menuConversiones.add(itemOp1);
+        menuConversiones.add(itemOp2);
         
         menuBar.add(menuArchivo);
         menuBar.add(menuProcesar);
+        menuBar.add(menuBrilloContraste);
+        menuBar.add(menuHistograma);
+        menuBar.add(menuConversiones);
         setJMenuBar(menuBar);
     }
 
@@ -89,22 +153,49 @@ public class FramePrincipal extends JFrame {
 
     // Mostrar la imagen cargada en un nuevo JInternalFrame
     private void mostrarImagenEnInternalFrame(BufferedImage img) {
-        JInternalFrame internalFrame = new JInternalFrame("Imagen", true, true, true, true);
-        JLabel imageLabel = new JLabel(new ImageIcon(img));
-        internalFrame.add(new JScrollPane(imageLabel));
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame("Imagen", true, true, true, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
 
-        // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
-        internalFrame.setSize(img.getWidth() + 20, img.getHeight() + 40); 
-        internalFrame.setVisible(true);
-        desktopPane.add(internalFrame); // Añadir el nuevo JInternalFrame al JDesktopPane
-        framesAbiertos.add(internalFrame); // Guardar en la lista de frames abiertos
-
-        try {
-            internalFrame.setSelected(true); // Seleccionar el nuevo JInternalFrame
-        } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
-        }
+    // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth() + 20, img.getHeight() + 40);
+    internalFrame.setVisible(true);
+    
+    // Crear una barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    
+    // Crear un menú "Archivo"
+    JMenu menuArchivo = new JMenu("Archivo");
+    
+    // Crear un ítem para "Guardar"
+    JMenuItem itemGuardar = new JMenuItem("Guardar");
+    itemGuardar.addActionListener(e -> {
+        // Lógica para guardar la imagen
+        JOptionPane.showMessageDialog(internalFrame, "Guardar imagen no implementado.");
+    });
+    
+    
+    // Agregar los ítems al menú "Archivo"
+    menuArchivo.add(itemGuardar);
+    
+    // Agregar el menú "Archivo" a la barra de menú
+    menuBar.add(menuArchivo);
+    
+    // Establecer la barra de menú en el JInternalFrame
+    internalFrame.setJMenuBar(menuBar);
+    
+    // Agregar el nuevo JInternalFrame al JDesktopPane
+    desktopPane.add(internalFrame);
+    framesAbiertos.add(internalFrame); // Guardar en la lista de frames abiertos
+    
+    try {
+        internalFrame.setSelected(true); // Seleccionar el nuevo JInternalFrame
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
     }
+}
+
 
     // Procesar la imagen seleccionada en el JInternalFrame activo
     private void procesarImagenSeleccionada(String operacion) {
@@ -130,13 +221,63 @@ public class FramePrincipal extends JFrame {
         } else if (operacion.equals("azul")) {
             imagenProcesada = extraerCanal(imagenActual,3);// Convertir a escala de grises
         } else if (operacion.equals("grises")) {
-            imagenProcesada = extraerCanal(imagenActual,5); // Convertir a escala de grises
+            imagenProcesada = extraerCanal(imagenActual,5); 
         }
+         else if (operacion.equals("brillo")) {
+            imagenProcesada = ajustarBrillo(imagenActual); 
+        }else if (operacion.equals("contraste")) {
+            imagenProcesada = ajustarContraste(imagenActual);
+        }else if (operacion.equals("HistG")) {
+            generarhistogramaGris(icon.getImage());
+        }else if (operacion.equals("Hist")) {
+            generarHistogramaRGB(icon.getImage());
+        }
+        else if (operacion.equals("RGBHSV")) {
+    // Creación de objeto para conversión
+    RgbToHsv conv = new RgbToHsv();
+    
+    // Obtener las tres imágenes (H, S, V)
+    Image imgH = conv.convertirImg(icon.getImage(), 1);
+    Image imgS = conv.convertirImg(icon.getImage(), 2);
+    Image imgV = conv.convertirImg(icon.getImage(), 3);
+
+    // Mostrar las imágenes en JInternalFrame
+    mostrarImagenEnInternalFrame(imgH, "Componente H", desktopPane, 1, conv.getImgConv());
+    mostrarImagenEnInternalFrame(imgS, "Componente S", desktopPane, 1,conv.getImgConv());
+    mostrarImagenEnInternalFrame(imgV, "Componente V", desktopPane, 1, conv.getImgConv());
+}else if (operacion.equals("RGBLAB")) {
+    // Creación de objeto para conversión
+    RgbToLab con = new RgbToLab(icon.getImage());
+    
+    // Obtener las tres imágenes (L, A, B)
+    Image imgL = con.ConvertirRGBaLab(1);
+    Image imgA = con.ConvertirRGBaLab(2);
+    Image imgB = con.ConvertirRGBaLab(3);
+
+    // Mostrar las imágenes en JInternalFrame
+    mostrarImagenEnInternalFrame2(imgL, "Componente L", desktopPane, con.getImgLab());
+    mostrarImagenEnInternalFrame2(imgA, "Componente A", desktopPane, con.getImgLab());
+    mostrarImagenEnInternalFrame2(imgB, "Componente B", desktopPane, con.getImgLab());
+}else if (operacion.equals("RGBHSI")) {
+    // Creación de objeto para conversión
+    RgbToHsi conv = new RgbToHsi();
+    
+    // Obtener las tres imágenes (H, S, I)
+    Image imgH = conv.convertirImg(icon.getImage(),1);
+    Image imgS = conv.convertirImg(icon.getImage(),2);
+    Image imgI = conv.convertirImg(icon.getImage(),3);
+
+    // Mostrar las imágenes en JInternalFrame
+    mostrarImagenEnInternalFrame3(imgH, "Componente H", desktopPane, conv.getImgconv());
+    mostrarImagenEnInternalFrame3(imgS, "Componente S", desktopPane, conv.getImgconv());
+    mostrarImagenEnInternalFrame3(imgI, "Componente I", desktopPane, conv.getImgconv());
+}
 
         if (imagenProcesada != null) {
             mostrarImagenEnInternalFrame(imagenProcesada); // Mostrar la imagen procesada en un nuevo frame
         }
     }
+    
 
     // Método de ejemplo para extraer el canal rojo
 private BufferedImage extraerCanal(BufferedImage img, int opcion) {
@@ -155,25 +296,6 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
 }
 
     
-    // Método para cambiar la imagen dentro del panel
-    private void cambiarCanalColor(int canal,String path, String name ) {
-       /*  LectorDeImagen lector = new LectorDeImagen(path, name);
-        lector.leerBufferedImagen();
-        ImageBufferedImage buffered = new ImageBufferedImage();
-        // Cerrar el Frame actual
-    this.dispose();
-        FrameImagen frame = new FrameImagen(
-                                buffered.getImage(
-                                    lector.getBufferedImagen(), canal, 1),path, name);
-        // Maximizar el frame al tamaño de la pantalla
-                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-
-                // Si deseas ocultar la barra de título, puedes usar esta línea:
-                // frame.setUndecorated(true);
-
-                // Hacer visible el frame
-                frame.setVisible(true);*/
-    }
 
     // Método de ejemplo para convertir la imagen a escala de grises
     private BufferedImage convertirEscalaGrises(BufferedImage img) {
@@ -194,7 +316,10 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
     
     
     // Método para ajustar el brillo
-    private void ajustarBrillo(BufferedImage img) {
+    private BufferedImage ajustarBrillo(BufferedImage img) {
+        ImageBufferedImage buffered = new ImageBufferedImage();
+        BufferedImage imagenBuffered  = null;
+
         // Crear un slider para ajustar el brillo
         JSlider slider = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
         slider.setMajorTickSpacing(50);
@@ -207,17 +332,19 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
         
         if (resultado == JOptionPane.OK_OPTION) {
             int valorBrillo = slider.getValue();
-            
             //se suma un escalar
-            cambiarContrasteBrillo(9, img);
+            imagenBuffered =  cambiarContrasteBrillo(9, valorBrillo, img);
+            // Crear un BufferedImage a partir de la imagen resultante
             
-            // Implementa la lógica para ajustar el brillo con el valor dado
-            // Ejemplo: panel.ajustarBrillo(valorBrillo);
         }
+        return imagenBuffered;
     }
 
         // Método para ajustar el contraste
-        private void ajustarContraste(BufferedImage img) {
+        private BufferedImage ajustarContraste(BufferedImage img) {
+            ImageBufferedImage buffered = new ImageBufferedImage();
+        BufferedImage imagenBuffered  = null;
+            
             // Crear un slider para ajustar el contraste
       JSlider sliderContraste = new JSlider(JSlider.HORIZONTAL, 50, 150, 100);
     sliderContraste.setMajorTickSpacing(25);
@@ -232,22 +359,23 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
     if (resultado == JOptionPane.OK_OPTION) {
         int valorSlider = sliderContraste.getValue();  // Valor del slider (10 a 20)
         double valorContraste = valorSlider / 10.0;  // Convertir a rango decimal (1.0 a 2.0)
-        cambiarContrasteBrillo( valorSlider, img);
+        imagenBuffered =  cambiarContrasteBrillo(10, valorSlider, img);
 
         // Usa el valor del contraste para procesar la imagen
         System.out.println("Contraste seleccionado: " + valorContraste);
     }
+        return imagenBuffered;
 
     }
     
     
-    private BufferedImage cambiarContrasteBrillo(int escalar,BufferedImage img ) {
+    private BufferedImage cambiarContrasteBrillo(int canal,int escalar,BufferedImage img ) {
         
     ImageBufferedImage buffered = new ImageBufferedImage();
-    Image imagenN = buffered.getImage(img, 4, escalar);
+    Image imagenN = buffered.getImage(img, canal, escalar);
 
     // Crear un BufferedImage a partir de la imagen resultante
-    BufferedImage imagenBuffered = new BufferedImage(imagenN.getWidth(null), imagenN.getHeight(null), BufferedImage.TYPE_INT_RGB);
+    BufferedImage imagenBuffered = new BufferedImage(imagenN.getWidth(null), imagenN.getHeight(null), BufferedImage.TYPE_BYTE_GRAY);
     
     // Dibujar la imagen sobre el BufferedImage
     Graphics g = imagenBuffered.getGraphics();
@@ -255,22 +383,163 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
     g.dispose();
 
     return imagenBuffered;
-         /*LectorDeImagen lector = new LectorDeImagen(path, name);
-        lector.leerBufferedImagen();
-        ImageBufferedImage buffered = new ImageBufferedImage();
-        // Cerrar el Frame actual
-    this.dispose();
-        FrameImagen frame = new FrameImagen(
-                                buffered.getImage(
-                                    lector.getBufferedImagen(), canal, escalar), path, name);
-        // Maximizar el frame al tamaño de la pantalla
-                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-
-                // Si deseas ocultar la barra de título, puedes usar esta línea:
-                // frame.setUndecorated(true);
-
-                // Hacer visible el frame
-                frame.setVisible(true);*/
     }
 
+    private void generarhistogramaGris(Image imagen){
+    Histograma histogramaGris = new Histograma(imagen);
+    histogramaGris.ejecutarTodo(4);
+    FrameHistograma frame = new FrameHistograma(histogramaGris, 4);
+    frame.setVisible(true);
+    }
+
+    private void generarHistogramaRGB(Image imagen){
+    Histograma histogramaRojo = new Histograma(imagen);
+    Histograma histogramaVerde = new Histograma(imagen);
+    Histograma histogramaAzul = new Histograma(imagen);
+    histogramaRojo.ejecutarTodo(1);
+    histogramaVerde.ejecutarTodo(2);
+    histogramaAzul.ejecutarTodo(3);
+    FrameHistograma frameRojo = new FrameHistograma(histogramaRojo, 1);
+    FrameHistograma frameVerde = new FrameHistograma(histogramaVerde, 2);
+    FrameHistograma frameAzul = new FrameHistograma(histogramaAzul, 3);
+    }
+    
+    private void mostrarImagenEnInternalFrame(Image img, String title, JDesktopPane desktopPane, int opcion, Hsv [] matriz) {
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame(title, false, true, false, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
+    
+     // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth(null) + 20, img.getHeight(null) + 40);
+    internalFrame.setVisible(true);
+    if(opcion==1){
+    // Crear la barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    JMenu menuExtraccion = new JMenu("Conversion RGB");
+            JMenuItem itemConversionRGB = new JMenuItem("Convertir a HSV a RGB");
+            menuExtraccion.add(itemConversionRGB);
+            menuBar.add(menuExtraccion);
+
+            
+            // Establecer la barra de menú en el JInternalFrame
+            internalFrame.setJMenuBar(menuBar);
+
+           
+
+            // Acción para "Convertir a RGB"
+            itemConversionRGB.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Conversión de HSV a RGB
+                    HsvToRgb con = new HsvToRgb();
+                    // Aquí podrías aplicar la conversión e implementar la lógica para mostrar el resultado.
+                    System.out.println("Convertir a RGB de HSV para: " + title);
+                    Image imagen= con.convertirHsiToRgb(matriz,img.getWidth(null), img.getHeight(null));
+                    mostrarImagenEnInternalFrame(imagen, "Conversion de RGB a HSV", desktopPane, 0, null);
+                }
+            });
+    
+    }
+
+
+            // Añadir el nuevo JInternalFrame al JDesktopPane
+            desktopPane.add(internalFrame);
+    
+
+    // Seleccionar el nuevo JInternalFrame
+    try {
+        internalFrame.setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
+    }
 }
+    
+    private void mostrarImagenEnInternalFrame2(Image img, String title, JDesktopPane desktopPane,  Lab [][] matriz) {
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame(title, false, true, false, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
+
+    // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth(null) + 20, img.getHeight(null) + 40);
+    internalFrame.setVisible(true);
+    
+    // Crear la barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    JMenu menuExtraccion = new JMenu("Conversion RGB");
+            JMenuItem itemConversionRGB = new JMenuItem("Convertir a LAB a RGB");
+            menuExtraccion.add(itemConversionRGB);
+            menuBar.add(menuExtraccion);
+
+            // Establecer la barra de menú en el JInternalFrame
+            internalFrame.setJMenuBar(menuBar);
+
+            // Acción para "Convertir a RGB"
+            itemConversionRGB.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Conversión de LAB a RGB
+                    LabToRgb conv = new LabToRgb();
+                    // Aquí podrías aplicar la conversión e implementar la lógica para mostrar el resultado.
+                    System.out.println("Convertir a RGB de LAB para: " + title);
+                    Image imagen= conv.convertirLabtoRgb(matriz,img.getWidth(null), img.getHeight(null));
+                    mostrarImagenEnInternalFrame(imagen, "Conversion de LAB a RGB", desktopPane, 0, null);
+                }
+            });
+
+            // Añadir el nuevo JInternalFrame al JDesktopPane
+            desktopPane.add(internalFrame);
+    // Seleccionar el nuevo JInternalFrame
+    try {
+        internalFrame.setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
+    }
+}
+
+    private void mostrarImagenEnInternalFrame3(Image img, String title, JDesktopPane desktopPane,  Hsi [] matriz) {
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame(title, false, true, false, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
+
+    // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth(null) + 20, img.getHeight(null) + 40);
+    internalFrame.setVisible(true);
+    
+    // Crear la barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    JMenu menuExtraccion = new JMenu("Conversion RGB");
+            JMenuItem itemConversionRGB = new JMenuItem("Convertir a HSI a RGB");
+            menuExtraccion.add(itemConversionRGB);
+            menuBar.add(menuExtraccion);
+
+            // Establecer la barra de menú en el JInternalFrame
+            internalFrame.setJMenuBar(menuBar);
+
+            // Acción para "Convertir a RGB"
+            itemConversionRGB.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Conversión de HSI a RGB
+                    HsiToRgb con = new HsiToRgb();
+                    // Aquí podrías aplicar la conversión e implementar la lógica para mostrar el resultado.
+                    System.out.println("Convertir a HSI de LAB para: " + title);
+                    Image imagen= con.convertirHsiToRgb(matriz,img.getWidth(null), img.getHeight(null));
+                    mostrarImagenEnInternalFrame(imagen, "Conversion de HSI a RGB", desktopPane, 0, null);
+                }
+            });
+
+            // Añadir el nuevo JInternalFrame al JDesktopPane
+            desktopPane.add(internalFrame);
+    // Seleccionar el nuevo JInternalFrame
+    try {
+        internalFrame.setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
+    }
+}
+    
+}
+
