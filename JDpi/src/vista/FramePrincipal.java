@@ -108,6 +108,8 @@ public class FramePrincipal extends JFrame {
         menuConversiones.add(itemOp4);
         menuConversiones.add(itemOp8);
         menuConversiones.add(itemOp5);
+        menuConversiones.add(itemOp6);
+        menuConversiones.add(itemOp7);
         
         menuBar.add(menuArchivo);
         menuBar.add(menuProcesar);
@@ -185,7 +187,6 @@ public class FramePrincipal extends JFrame {
         e.printStackTrace();
     }
 }
-
 
     // Procesar la imagen seleccionada en el JInternalFrame activo
     private void procesarImagenSeleccionada(String operacion) {
@@ -296,6 +297,14 @@ public class FramePrincipal extends JFrame {
 
     // Mostrar las imágenes en JInternalFrame
     mostrarImagenEnInternalFrame5(img, "Imagen en CMY", desktopPane);
+}else if (operacion.equals("RGBCol")) {
+    mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 1), "Canal rojo", desktopPane,0, null);
+    mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 2), "Canal verde", desktopPane,0, null);
+    mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 3), "Canal azul", desktopPane,0, null);
+}else if (operacion.equals("RGBGris")) {
+    mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 6), "Canal rojo en grises", desktopPane,0, null);
+    mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 7), "Canal verde en grises", desktopPane,0, null);
+    mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 8), "Canal azul en grises", desktopPane,0, null);
 }
 
         if (imagenProcesada != null) {
@@ -303,7 +312,6 @@ public class FramePrincipal extends JFrame {
         }
     }
     
-
     // Método de ejemplo para extraer el canal rojo
 private BufferedImage extraerCanal(BufferedImage img, int opcion) {
     ImageBufferedImage buffered = new ImageBufferedImage();
@@ -319,26 +327,6 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
 
     return imagenBuffered;
 }
-
-    
-
-    // Método de ejemplo para convertir la imagen a escala de grises
-    private BufferedImage convertirEscalaGrises(BufferedImage img) {
-        BufferedImage resultado = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        for (int x = 0; x < img.getWidth(); x++) {
-            for (int y = 0; y < img.getHeight(); y++) {
-                int pixel = img.getRGB(x, y);
-                int rojo = (pixel >> 16) & 0xFF;
-                int verde = (pixel >> 8) & 0xFF;
-                int azul = pixel & 0xFF;
-                int gris = (rojo + verde + azul) / 3;
-                int nuevoPixel = (gris << 16) | (gris << 8) | gris;
-                resultado.setRGB(x, y, nuevoPixel);
-            }
-        }
-        return resultado;
-    }
-    
     
     // Método para ajustar el brillo
     private BufferedImage ajustarBrillo(BufferedImage img) {
@@ -392,7 +380,6 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
         return imagenBuffered;
 
     }
-    
     
     private BufferedImage cambiarContrasteBrillo(int canal,int escalar,BufferedImage img ) {
         
