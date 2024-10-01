@@ -4,6 +4,8 @@ import color.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,7 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import java.io.IOException;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import modelo.Histograma;
+import modelo.Binarizador;
 import modelo.ImageBufferedImage;
 import modelo.LectorDeImagen;
 
@@ -44,6 +49,7 @@ public class FramePrincipal extends JFrame {
         JMenu menuBrilloContraste = new JMenu("Brillo y Contraste");
         JMenu menuHistograma = new JMenu("Histograma");
         JMenu menuConversiones= new JMenu("Conversiones Directas (modelos de color)");
+        JMenu menuBin= new JMenu("Binarizacion");
 
         // Opción de menú para cambiar la imagen
         JMenuItem menuItemCambiar = new JMenuItem("Cambiar Imagen");
@@ -91,6 +97,14 @@ public class FramePrincipal extends JFrame {
         itemOp6.addActionListener(e ->procesarImagenSeleccionada("RGBCol"));
         JMenuItem itemOp7 = new JMenuItem("Extracción de canales RGB en grises");
         itemOp7.addActionListener(e ->procesarImagenSeleccionada("RGBGris"));
+        
+        //menu binarizacion
+         JMenuItem B1 = new JMenuItem("1 Umbral");
+        B1.addActionListener(e ->procesarImagenSeleccionada("B1"));
+        JMenuItem B2 = new JMenuItem("2 Umbrales");
+        B2.addActionListener(e ->procesarImagenSeleccionada("B2"));
+        JMenuItem B3 = new JMenuItem("3 Umbrales");
+        B3.addActionListener(e ->procesarImagenSeleccionada("B3"));
 
         // Añadir las opciones a los menús
         menuArchivo.add(menuItemCambiar);
@@ -110,12 +124,16 @@ public class FramePrincipal extends JFrame {
         menuConversiones.add(itemOp5);
         menuConversiones.add(itemOp6);
         menuConversiones.add(itemOp7);
+        menuBin.add(B1);
+        menuBin.add(B2);
+        menuBin.add(B3);
         
         menuBar.add(menuArchivo);
         menuBar.add(menuProcesar);
         menuBar.add(menuBrilloContraste);
         menuBar.add(menuHistograma);
         menuBar.add(menuConversiones);
+        menuBar.add(menuBin);
         setJMenuBar(menuBar);
     }
 
@@ -142,6 +160,23 @@ public class FramePrincipal extends JFrame {
             }
         }
     }
+    
+    public BufferedImage toBufferedImage(Image img) {
+    if (img instanceof BufferedImage) {
+        return (BufferedImage) img;  // Si ya es BufferedImage, no hay problema.
+    }
+
+    // Crear un BufferedImage con el mismo tamaño que la imagen original
+    BufferedImage bimage = new BufferedImage(
+            img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+    // Dibujar la imagen en el BufferedImage
+    Graphics2D bGr = bimage.createGraphics();
+    bGr.drawImage(img, 0, 0, null);
+    bGr.dispose();
+
+    return bimage;
+}
 
     // Mostrar la imagen cargada en un nuevo JInternalFrame
     private void mostrarImagenEnInternalFrame(BufferedImage img) {
@@ -200,7 +235,7 @@ public class FramePrincipal extends JFrame {
         // Obtener la imagen actual mostrada en el frame seleccionado
         JLabel label = (JLabel)((JScrollPane) frameSeleccionado.getContentPane().getComponent(0)).getViewport().getView();
         ImageIcon icon = (ImageIcon) label.getIcon();
-        BufferedImage imagenActual = (BufferedImage) icon.getImage();
+        BufferedImage imagenActual = toBufferedImage(icon.getImage());
 
         BufferedImage imagenProcesada = null;
         
@@ -305,7 +340,16 @@ public class FramePrincipal extends JFrame {
     mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 6), "Canal rojo en grises", desktopPane,0, null);
     mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 7), "Canal verde en grises", desktopPane,0, null);
     mostrarImagenEnInternalFrame(extraerCanal((BufferedImage) icon.getImage(), 8), "Canal azul en grises", desktopPane,0, null);
-}
+}else if (operacion.equals("B1")) {
+            Image img1=ajustarB1(imagenActual);
+            mostrarImagenEnInternalFrame(img1, "Umbral (1)", desktopPane,0, null);
+}else if (operacion.equals("B2")) {
+            Image img1=ajustarB2(imagenActual);
+            mostrarImagenEnInternalFrame(img1, "Umbral (2)", desktopPane,0, null);
+}else if (operacion.equals("B3")) {
+            Image img1=ajustarB3(imagenActual);
+            mostrarImagenEnInternalFrame(img1, "Umbral (3)", desktopPane,0, null);
+        }
 
         if (imagenProcesada != null) {
             mostrarImagenEnInternalFrame(imagenProcesada); // Mostrar la imagen procesada en un nuevo frame
@@ -706,6 +750,315 @@ private BufferedImage extraerCanal(BufferedImage img, int opcion) {
     } catch (java.beans.PropertyVetoException e) {
         e.printStackTrace();
     }
-}  
+}
+   
+   // Método para ajustar el umbral
+private Image ajustarB1(BufferedImage img) {
+    final boolean[] valBo = {false}; 
+    Binarizador bi = new Binarizador();
+    ImageBufferedImage buffered = new ImageBufferedImage();
+    BufferedImage imagenBuffered = img; // Inicializamos con la imagen original
+    Image binarizada=null;
+
+    // Crear un slider para ajustar el brillo
+    JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 256, 128);
+    slider.setMajorTickSpacing(50);
+    slider.setMinorTickSpacing(10);
+    slider.setPaintTicks(true);
+    slider.setPaintLabels(true);
+
+    // Crear un JLabel para mostrar la imagen
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    
+    // Crear un botón "Invertir"
+    JButton botonInvertir = new JButton("Invertir");
+
+    // Crear un panel que contenga tanto el slider como la imagen
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+    panel.add(slider, BorderLayout.SOUTH); // Slider en la parte inferior
+    panel.add(imageLabel, BorderLayout.CENTER); // Imagen en el centro
+    panel.add(botonInvertir, BorderLayout.NORTH); // Botón en la parte superior
+
+    // Agregar un ChangeListener al slider para actualizar la imagen en tiempo real
+    slider.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            int umbral1 = slider.getValue();
+            // Aplicar binarización con el umbral actual
+            Image imagenBinarizada = bi.binarizarUnUmbral(imagenBuffered, umbral1, valBo[0]);
+            // Actualizar el JLabel con la nueva imagen
+            imageLabel.setIcon(new ImageIcon(imagenBinarizada));
+        }
+    });
+    // Agregar un ActionListener al botón "Invertir"
+    botonInvertir.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            // Cambiar el estado de inversión
+           valBo[0] = !valBo[0];
+            // Actualizar la imagen binarizada con el estado de inversión
+            int umbral1 = slider.getValue();
+            Image imagenInvertida = bi.binarizarUnUmbral(imagenBuffered, umbral1, valBo[0]);
+            // Actualizar el JLabel con la imagen invertida
+            imageLabel.setIcon(new ImageIcon(imagenInvertida));
+        }
+    });
+
+    // Mostrar el diálogo con la imagen y el slider
+    int resultado = JOptionPane.showConfirmDialog(this, panel,
+            "Ajustar Umbral 1", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+    if (resultado == JOptionPane.OK_OPTION) {
+        int valor = slider.getValue();
+        binarizada=bi.binarizarUnUmbral(imagenBuffered, valor, valBo[0]);
+    }
+
+    return binarizada;
+}
+
+private Image ajustarB2(BufferedImage img) {
+    final boolean[] valBo = {false}; 
+    Binarizador bi = new Binarizador();
+    ImageBufferedImage buffered = new ImageBufferedImage();
+    BufferedImage imagenBuffered = img; // Inicializamos con la imagen original
+    Image binarizada = null;
+
+    // Crear un slider para ajustar el brillo
+    JSlider slider1 = new JSlider(JSlider.HORIZONTAL, 0, 256, 128);
+    slider1.setMajorTickSpacing(50);
+    slider1.setMinorTickSpacing(10);
+    slider1.setPaintTicks(true);
+    slider1.setPaintLabels(true);
+    
+    // Crear un JLabel para el primer umbral
+    JLabel labelUmbral1 = new JLabel("Umbral 1: " + slider1.getValue());
+
+    // Crear un segundo slider para ajustar otro umbral
+    JSlider slider2 = new JSlider(JSlider.HORIZONTAL, 0, 256, 128);
+    slider2.setMajorTickSpacing(50);
+    slider2.setMinorTickSpacing(10);
+    slider2.setPaintTicks(true);
+    slider2.setPaintLabels(true);
+    
+    // Crear un JLabel para el segundo umbral
+    JLabel labelUmbral2 = new JLabel("Umbral 2: " + slider2.getValue());
+
+    // Crear un JLabel para mostrar la imagen
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    
+    // Crear un botón "Invertir"
+    JButton botonInvertir = new JButton("Invertir");
+
+    // Crear un panel que contenga tanto los sliders como la imagen
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+    
+    // Crear un panel para los sliders y sus etiquetas
+    JPanel slidersPanel = new JPanel();
+    slidersPanel.setLayout(new GridLayout(2, 2)); // Dos filas, dos columnas
+    slidersPanel.add(labelUmbral1);
+    slidersPanel.add(slider1);
+    slidersPanel.add(labelUmbral2);
+    slidersPanel.add(slider2);
+    
+    panel.add(slidersPanel, BorderLayout.SOUTH); // Sliders en la parte inferior
+    panel.add(imageLabel, BorderLayout.CENTER); // Imagen en el centro
+    panel.add(botonInvertir, BorderLayout.NORTH); // Botón en la parte superior
+
+    // Agregar un ChangeListener al primer slider para actualizar la imagen en tiempo real
+    slider1.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            int umbral1 = slider1.getValue();
+            labelUmbral1.setText("Umbral 1: " + umbral1); // Actualizar etiqueta
+            int umbral2 = slider2.getValue();
+            // Aplicar binarización con los umbrales actuales
+            Image imagenBinarizada = bi.binarizarDosUmbrales(imagenBuffered, umbral1, umbral2, valBo[0]);
+            // Actualizar el JLabel con la nueva imagen
+            imageLabel.setIcon(new ImageIcon(imagenBinarizada));
+        }
+    });
+
+    // Agregar un ChangeListener al segundo slider para actualizar la imagen en tiempo real
+    slider2.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            int umbral2 = slider2.getValue();
+            labelUmbral2.setText("Umbral 2: " + umbral2); // Actualizar etiqueta
+            int umbral1 = slider1.getValue();
+            // Aplicar binarización con los umbrales actuales
+            Image imagenBinarizada = bi.binarizarDosUmbrales(imagenBuffered, umbral1, umbral2, valBo[0]);
+            // Actualizar el JLabel con la nueva imagen
+            imageLabel.setIcon(new ImageIcon(imagenBinarizada));
+        }
+    });
+
+    // Agregar un ActionListener al botón "Invertir"
+    botonInvertir.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Cambiar el estado de inversión
+            valBo[0] = !valBo[0];
+            // Actualizar la imagen binarizada con el estado de inversión
+            int umbral1 = slider1.getValue();
+            int umbral2 = slider2.getValue();
+            Image imagenInvertida = bi.binarizarDosUmbrales(imagenBuffered, umbral1, umbral2, valBo[0]);
+            // Actualizar el JLabel con la imagen invertida
+            imageLabel.setIcon(new ImageIcon(imagenInvertida));
+        }
+    });
+
+    // Mostrar el diálogo con la imagen y los sliders
+    int resultado = JOptionPane.showConfirmDialog(this, panel,
+            "Ajustar Umbrales", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+    if (resultado == JOptionPane.OK_OPTION) {
+        int valor1 = slider1.getValue();
+        int valor2 = slider2.getValue();
+        // Aplicar binarización con ambos umbrales al finalizar
+        binarizada = bi.binarizarDosUmbrales(imagenBuffered, valor1, valor2, valBo[0]); // Puedes modificar esta línea según lo que necesites hacer con ambos umbrales.
+    }
+
+    return binarizada;
+}
+
+ private Image ajustarB3(BufferedImage img) {
+    final boolean[] valBo = {false}; 
+    Binarizador bi = new Binarizador();
+    ImageBufferedImage buffered = new ImageBufferedImage();
+    BufferedImage imagenBuffered = img; // Inicializamos con la imagen original
+    Image binarizada = null;
+
+    // Crear un slider para ajustar el primer umbral
+    JSlider slider1 = new JSlider(JSlider.HORIZONTAL, 0, 256, 128);
+    slider1.setMajorTickSpacing(50);
+    slider1.setMinorTickSpacing(10);
+    slider1.setPaintTicks(true);
+    slider1.setPaintLabels(true);
+    
+    // Crear un JLabel para el primer umbral
+    JLabel labelUmbral1 = new JLabel("Umbral 1: " + slider1.getValue());
+
+    // Crear un segundo slider para ajustar el segundo umbral
+    JSlider slider2 = new JSlider(JSlider.HORIZONTAL, 0, 256, 128);
+    slider2.setMajorTickSpacing(50);
+    slider2.setMinorTickSpacing(10);
+    slider2.setPaintTicks(true);
+    slider2.setPaintLabels(true);
+    
+    // Crear un JLabel para el segundo umbral
+    JLabel labelUmbral2 = new JLabel("Umbral 2: " + slider2.getValue());
+
+    // Crear un tercer slider para ajustar el tercer umbral
+    JSlider slider3 = new JSlider(JSlider.HORIZONTAL, 0, 256, 128);
+    slider3.setMajorTickSpacing(50);
+    slider3.setMinorTickSpacing(10);
+    slider3.setPaintTicks(true);
+    slider3.setPaintLabels(true);
+    
+    // Crear un JLabel para el tercer umbral
+    JLabel labelUmbral3 = new JLabel("Umbral 3: " + slider3.getValue());
+
+    // Crear un JLabel para mostrar la imagen
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    
+    // Crear un botón "Invertir"
+    JButton botonInvertir = new JButton("Invertir");
+
+    // Crear un panel que contenga tanto los sliders como la imagen
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+    
+    // Crear un panel para los sliders y sus etiquetas
+    JPanel slidersPanel = new JPanel();
+    slidersPanel.setLayout(new GridLayout(3, 2)); // Tres filas, dos columnas
+    slidersPanel.add(labelUmbral1);
+    slidersPanel.add(slider1);
+    slidersPanel.add(labelUmbral2);
+    slidersPanel.add(slider2);
+    slidersPanel.add(labelUmbral3);
+    slidersPanel.add(slider3);
+    
+    panel.add(slidersPanel, BorderLayout.SOUTH); // Sliders en la parte inferior
+    panel.add(imageLabel, BorderLayout.CENTER); // Imagen en el centro
+    panel.add(botonInvertir, BorderLayout.NORTH); // Botón en la parte superior
+
+    // Agregar un ChangeListener al primer slider para actualizar la imagen en tiempo real
+    slider1.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            int umbral1 = slider1.getValue();
+            labelUmbral1.setText("Umbral 1: " + umbral1); // Actualizar etiqueta
+            int umbral2 = slider2.getValue();
+            int umbral3 = slider3.getValue();
+            // Aplicar binarización con los umbrales actuales
+            Image imagenBinarizada = bi.binarizarTresUmbrales(imagenBuffered, umbral1, umbral2, umbral3, valBo[0]);
+            // Actualizar el JLabel con la nueva imagen
+            imageLabel.setIcon(new ImageIcon(imagenBinarizada));
+        }
+    });
+
+    // Agregar un ChangeListener al segundo slider para actualizar la imagen en tiempo real
+    slider2.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            int umbral2 = slider2.getValue();
+            labelUmbral2.setText("Umbral 2: " + umbral2); // Actualizar etiqueta
+            int umbral1 = slider1.getValue();
+            int umbral3 = slider3.getValue();
+            // Aplicar binarización con los umbrales actuales
+            Image imagenBinarizada = bi.binarizarTresUmbrales(imagenBuffered, umbral1, umbral2, umbral3, valBo[0]);
+            // Actualizar el JLabel con la nueva imagen
+            imageLabel.setIcon(new ImageIcon(imagenBinarizada));
+        }
+    });
+
+    // Agregar un ChangeListener al tercer slider para actualizar la imagen en tiempo real
+    slider3.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            int umbral3 = slider3.getValue();
+            labelUmbral3.setText("Umbral 3: " + umbral3); // Actualizar etiqueta
+            int umbral1 = slider1.getValue();
+            int umbral2 = slider2.getValue();
+            // Aplicar binarización con los umbrales actuales
+            Image imagenBinarizada = bi.binarizarTresUmbrales(imagenBuffered, umbral1, umbral2, umbral3, valBo[0]);
+            // Actualizar el JLabel con la nueva imagen
+            imageLabel.setIcon(new ImageIcon(imagenBinarizada));
+        }
+    });
+
+    // Agregar un ActionListener al botón "Invertir"
+    botonInvertir.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Cambiar el estado de inversión
+            valBo[0] = !valBo[0];
+            // Actualizar la imagen binarizada con el estado de inversión
+            int umbral1 = slider1.getValue();
+            int umbral2 = slider2.getValue();
+            int umbral3 = slider3.getValue();
+            Image imagenInvertida = bi.binarizarTresUmbrales(imagenBuffered, umbral1, umbral2, umbral3, valBo[0]);
+            // Actualizar el JLabel con la imagen invertida
+            imageLabel.setIcon(new ImageIcon(imagenInvertida));
+        }
+    });
+
+    // Mostrar el diálogo con la imagen y los sliders
+    int resultado = JOptionPane.showConfirmDialog(this, panel,
+            "Ajustar Umbrales", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+    if (resultado == JOptionPane.OK_OPTION) {
+        int valor1 = slider1.getValue();
+        int valor2 = slider2.getValue();
+        int valor3 = slider3.getValue();
+        // Aplicar binarización con los tres umbrales al finalizar
+        binarizada = bi.binarizarTresUmbrales(imagenBuffered, valor1, valor2, valor3, valBo[0]); // Ajusta esta línea según lo que necesites hacer con los tres umbrales.
+    }
+
+    return binarizada;
+}
+
 }
 
