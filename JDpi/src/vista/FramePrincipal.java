@@ -50,6 +50,14 @@ public class FramePrincipal extends JFrame {
         JMenu menuHistograma = new JMenu("Histograma");
         JMenu menuConversiones= new JMenu("Conversiones Directas (modelos de color)");
         JMenu menuBin= new JMenu("Binarizacion");
+        JMenu menuOp= new JMenu("Operaciones con Imagen");
+         // Opción de menú para operar
+        JMenuItem menuItemAritmeticas = new JMenuItem("Operaciones aritmeticas");
+        menuItemAritmeticas.addActionListener(e -> abrirFrameOperaciones(1));
+        JMenuItem menuItemLog = new JMenuItem("Operaciones logicas");
+        menuItemLog.addActionListener(e -> abrirFrameOperaciones(2));
+        JMenuItem menuItemRel = new JMenuItem("Operaciones relacionales");
+        menuItemRel.addActionListener(e -> abrirFrameOperaciones(3));
 
         // Opción de menú para cambiar la imagen
         JMenuItem menuItemCambiar = new JMenuItem("Cambiar Imagen");
@@ -127,6 +135,9 @@ public class FramePrincipal extends JFrame {
         menuBin.add(B1);
         menuBin.add(B2);
         menuBin.add(B3);
+        menuOp.add(menuItemAritmeticas);
+        menuOp.add(menuItemLog);
+        menuOp.add(menuItemRel);
         
         menuBar.add(menuArchivo);
         menuBar.add(menuProcesar);
@@ -134,6 +145,7 @@ public class FramePrincipal extends JFrame {
         menuBar.add(menuHistograma);
         menuBar.add(menuConversiones);
         menuBar.add(menuBin);
+        menuBar.add(menuOp);
         setJMenuBar(menuBar);
     }
 
@@ -159,6 +171,11 @@ public class FramePrincipal extends JFrame {
                 JOptionPane.showMessageDialog(this, "Error al cargar la imagen", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+    
+    private void abrirFrameOperaciones(int op) {
+        FrameOperaciones frameOperaciones = new FrameOperaciones(op);
+        frameOperaciones.setVisible(true);
     }
     
     public BufferedImage toBufferedImage(Image img) {
