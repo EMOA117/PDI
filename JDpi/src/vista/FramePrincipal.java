@@ -60,7 +60,7 @@ public class FramePrincipal extends JFrame {
         menuItemRel.addActionListener(e -> abrirFrameOperaciones(3));
 
         // Opción de menú para cambiar la imagen
-        JMenuItem menuItemCambiar = new JMenuItem("Cambiar Imagen");
+        JMenuItem menuItemCambiar = new JMenuItem("Cargar Imagen");
         menuItemCambiar.addActionListener(e -> cambiarImagen());
 
         // Opción para procesar imagen (ejemplo: extraer canal rojo)
@@ -174,7 +174,7 @@ public class FramePrincipal extends JFrame {
     }
     
     private void abrirFrameOperaciones(int op) {
-        FrameOperaciones frameOperaciones = new FrameOperaciones(op);
+        FrameOperaciones frameOperaciones = new FrameOperaciones(op, this);
         frameOperaciones.setVisible(true);
     }
     
@@ -197,6 +197,51 @@ public class FramePrincipal extends JFrame {
 
     // Mostrar la imagen cargada en un nuevo JInternalFrame
     private void mostrarImagenEnInternalFrame(BufferedImage img) {
+    // Crear un JInternalFrame para mostrar la imagen
+    JInternalFrame internalFrame = new JInternalFrame("Imagen", true, true, true, true);
+    JLabel imageLabel = new JLabel(new ImageIcon(img));
+    internalFrame.add(new JScrollPane(imageLabel));
+
+    // Ajustar el tamaño del JInternalFrame al tamaño de la imagen
+    internalFrame.setSize(img.getWidth() + 20, img.getHeight() + 40);
+    internalFrame.setVisible(true);
+    
+    // Crear una barra de menú para el JInternalFrame
+    JMenuBar menuBar = new JMenuBar();
+    
+    // Crear un menú "Archivo"
+    JMenu menuArchivo = new JMenu("Archivo");
+    
+    // Crear un ítem para "Guardar"
+    JMenuItem itemGuardar = new JMenuItem("Guardar");
+    itemGuardar.addActionListener(e -> {
+        // Lógica para guardar la imagen
+        JOptionPane.showMessageDialog(internalFrame, "Guardar imagen no implementado.");
+    });
+    
+    
+    // Agregar los ítems al menú "Archivo"
+    menuArchivo.add(itemGuardar);
+    
+    // Agregar el menú "Archivo" a la barra de menú
+    menuBar.add(menuArchivo);
+    
+    // Establecer la barra de menú en el JInternalFrame
+    internalFrame.setJMenuBar(menuBar);
+    
+    // Agregar el nuevo JInternalFrame al JDesktopPane
+    desktopPane.add(internalFrame);
+    framesAbiertos.add(internalFrame); // Guardar en la lista de frames abiertos
+    
+    try {
+        internalFrame.setSelected(true); // Seleccionar el nuevo JInternalFrame
+    } catch (java.beans.PropertyVetoException e) {
+        e.printStackTrace();
+    }
+}
+    
+    // Mostrar la imagen cargada en un nuevo JInternalFrame
+    public void mostrarImagenEnInternalFrameOp(BufferedImage img) {
     // Crear un JInternalFrame para mostrar la imagen
     JInternalFrame internalFrame = new JInternalFrame("Imagen", true, true, true, true);
     JLabel imageLabel = new JLabel(new ImageIcon(img));
